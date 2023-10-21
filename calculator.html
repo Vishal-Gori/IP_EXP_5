@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        /* CSS styling */
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* background: linear-gradient(45deg, #0a0a0a, #3a4452); */
+    background: linear-gradient(180deg, #0093e9, #80D0C7);
+}
+
+.display {
+    height: 80px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #000;
+    color: #fff;
+    font-size: 48px;
+    font-weight: bold;
+    text-align: right;
+    line-height: 1.2;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .calculator {
+    border: 5px solid #717377;
+    padding: 20px;
+    border-radius: 15px;
+    background: transparent;
+    box-shadow: 0px 3px 15px rgba(113, 115, 119, 0.5);
+  }
+
+  button {
+    border: none;
+    width: 60px;
+    height: 60px;
+    margin: 10px;
+    border-radius: 25%;
+    /* background: transparent; */
+    background-color: #ffffff;
+    font-size: 20px;
+    box-shadow: -8px -8px 15px rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+  }
+
+  button:hover {
+    border: 2px solid #ffffff;
+    background: transparent;
+  }
+
+  .equalBtn {
+    background-color: #fb7c14;
+  }
+
+  .equalBtn:hover {
+    border: 1px solid #000;
+    background-color: #ffffff;
+    color: #fb7c14;
+  }
+
+  .operator {
+    color: #6dee0a;
+  }
+
+  .operator:hover {
+    background-color: #6dee0a ;
+    color: #000;
+  }
+
+  #c:hover{
+    background-color: #ff0000;
+  }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <div class="display" id="display"></div>
+        <div class="">
+            <div class="">
+                <button id="ac">AC</button>
+                <button id="c">DEL</button>
+            </div>
+            <div class=''>
+                <button id="left-parentheses">(</button>
+                <button id="right-parentheses">)</button>
+                <button class='operator' id="percentage">%</button>
+                <button class='operator' id="division">/</button>
+            </div>
+            <div class="">
+                <button id="seven">7</button>
+                <button id="eight">8</button>
+                <button id="nine">9</button>
+                <button class='operator' id="multiplication">*</button>
+            </div>
+            <div class="">
+                <button id="four">4</button>
+                <button id="five">5</button>
+                <button id="six">6</button>
+                <button class='operator' id="subtraction">-</button>
+            </div>
+            <div class="">
+                <button id="one">1</button>
+                <button id="two">2</button>
+                <button id="three">3</button>
+                <button class='operator' id="addition">+</button>
+            </div>
+            <div class="">
+                <button id="sign">+/-</button>
+                <button id="zero">0</button>
+                <button id="decimal">.</button>
+                <button class='equalBtn' id="equal">=</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // JavaScript functionality
+        const display = document.getElementById('display');
+        let input = '';
+
+        const handleButtonClick = (value) => {
+            if (value === '=') {
+                calculateResult();
+            } else if (value === 'AC') {
+                clearInput();
+            } else if (value === 'DEL') {
+                clearLastCharacter();
+            } else if (value === '+/-') {
+                changeSign();
+            } else if (value === '(' || value === ')') {
+                appendParentheses(value);
+            } else if (isDecimal(value)) {
+                handleDecimalClick(value);
+            } else if (isOperator(value)) {
+                handleOperatorClick(value);
+            } else {
+                setInput(input + value);
+            }
+        };
+
+        const isOperator = (value) => {
+            return value === '+' || value === '-' || value === '*' || value === '/';
+        };
+
+        const isDecimal = (value) => {
+            return value === '.';
+        };
+
+        const isNumber = (value) => {
+            return !isNaN(value);
+        };
+
+        const handleDecimalClick = (value) => {
+            if (isDecimal(input[input.length - 1])) {
+                alert('Two Decimal dots cannot be clicked consecutively');
+            } else {
+                setInput(input + value);
+            }
+        };
+
+        const handleOperatorClick = (value) => {
+            if (isOperator(input[input.length - 1])) {
+                alert('Two operators cannot be clicked consecutively');
+            } else if (!isNumber(input[input.length - 1])) {
+                alert('Type a number first');
+            } else {
+                setInput(input + value);
+            }
+        };
+
+        const calculatePercentage = () => {
+            let modifiedInput = input.replace(/%/g, '/100*');
+            try {
+                const result = eval(modifiedInput);
+                return result;
+            } catch (error) {
+                return 'Error';
+            }
+        };
+
+        const calculateResultAsync = () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (input === '') {
+                        reject('Input is empty');
+                    }
+                    let result = input;
+                    if (input.includes('%')) {
+                        result = calculatePercentage();
+                    } else {
+                        result = eval(input);
+                    }
+
+                    if (!isFinite(result)) {
+                        reject('Cannot divide by zero!!!');
+                    }
+
+                    resolve(result.toFixed(2).toString());
+                } catch (error) {
+                    reject(error.message.replace(/\(.+\)/g, ""));
+                    if (isOperator(input[input.length - 1]) || input[input.length - 1] === '(') {
+                        reject('Incomplete input');
+                    } else {
+                        reject("Parentheses not proper");
+                    }
+                }
+            });
+        };
+
+         // Function to handle button click with async/await
+         const handleButtonClickAsync = async (value) => {
+            try {
+                if (value === '=') {
+                    const result = await calculateResultAsync();
+                    setInput(result);
+                } else {
+                    handleButtonClick(value);
+                }
+            } catch (error) {
+                alert(error);
+            }
+        };
+
+        const clearInput = () => {
+            setInput('');
+        };
+
+        const clearLastCharacter = () => {
+            setInput(input.slice(0, -1));
+        };
+
+        const changeSign = () => {
+            setInput(input.charAt(0) === '-' ? input.slice(1) : '-' + input);
+        };
+
+        const appendParentheses = (parentheses) => {
+            setInput(input + parentheses);
+        };
+
+        const setInput = (newValue) => {
+            input = newValue;
+            display.textContent = input;
+        };
+
+        // Add event listeners to buttons
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(button => {
+            button.addEventListener('click', () => {
+                handleButtonClickAsync(button.textContent);
+            });
+        });
+    </script>
+</body>
+</html>
